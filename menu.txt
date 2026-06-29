@@ -603,8 +603,6 @@ async def q6_value_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return QUESTION_FULLNAME
 
 
-
-
 async def q7_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 7 response (full name)."""
     if update.message and is_back_text(update.message.text):
