@@ -1,7 +1,6 @@
 import html
 import logging
 import os
-import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -24,7 +23,6 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from telegram.request import HTTPXRequest
 
 load_dotenv()
 
@@ -42,11 +40,7 @@ supabase = None
 if SUPABASE_URL and SUPABASE_KEY:
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-logging.basicConfig(level=logging.ERROR, format="%(asctime)s %(levelname)s:%(name)s:%(message)s")
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.ERROR)
-for noisy_logger in ("httpx", "httpcore", "telegram", "telegram.ext", "urllib3"):
-    logging.getLogger(noisy_logger).setLevel(logging.ERROR)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 (QUESTION_CONTINUE, QUESTION_SUBJECT, QUESTION_TYPE, QUESTION_COVERAGE,
@@ -461,28 +455,20 @@ async def q1_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     choice = update.message.text.strip()
     context.user_data["assessment"]["request"] = choice
-    
-    try:
-        await update.message.reply_text(f"✅ Selected: {choice}")
-    except Exception as exc:
-        logger.error(f"Failed to send Q1 confirmation: {exc}")
+    await update.message.reply_text(f"✅ Selected: {choice}")
 
-    try:
-        await update.message.reply_text(
-            "<b>Question 2</b>\n\nWho is the subject?",
-            parse_mode=constants.ParseMode.HTML,
-            reply_markup=build_question_keyboard([
-                "Founder (CEO)",
-                "Author",
-                "Artist",
-                "Public Figure",
-                "Company",
-                "Other",
-            ]),
-        )
-    except Exception as exc:
-        logger.error(f"Failed to send Question 2: {exc}")
-    
+    await update.message.reply_text(
+        "<b>Question 2</b>\n\nWho is the subject?",
+        parse_mode=constants.ParseMode.HTML,
+        reply_markup=build_question_keyboard([
+            "Founder (CEO)",
+            "Author",
+            "Artist",
+            "Public Figure",
+            "Company",
+            "Other",
+        ]),
+    )
     return QUESTION_TYPE
 
 
@@ -493,26 +479,18 @@ async def q2_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     choice = update.message.text.strip()
     context.user_data["assessment"]["subject"] = choice
-    
-    try:
-        await update.message.reply_text(f"✅ Selected: {choice}")
-    except Exception as exc:
-        logger.error(f"Failed to send Q2 confirmation: {exc}")
+    await update.message.reply_text(f"✅ Selected: {choice}")
 
-    try:
-        await update.message.reply_text(
-            "<b>Question 3</b>\n\nDo you currently have independent media coverage that talks about the subject name?",
-            parse_mode=constants.ParseMode.HTML,
-            reply_markup=build_question_keyboard([
-                "Yes, Major Coverage",
-                "Well, Some Coverage",
-                "No, at all",
-                "I Don't think So",
-            ]),
-        )
-    except Exception as exc:
-        logger.error(f"Failed to send Question 3: {exc}")
-    
+    await update.message.reply_text(
+        "<b>Question 3</b>\n\nDo you currently have independent media coverage that talks about the subject name?",
+        parse_mode=constants.ParseMode.HTML,
+        reply_markup=build_question_keyboard([
+            "Yes, Major Coverage",
+            "Well, Some Coverage",
+            "No, at all",
+            "I Don't think So",
+        ]),
+    )
     return QUESTION_COVERAGE
 
 
@@ -523,21 +501,13 @@ async def q3_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     choice = update.message.text.strip()
     context.user_data["assessment"]["coverage"] = choice
-    
-    try:
-        await update.message.reply_text(f"✅ Selected: {choice}")
-    except Exception as exc:
-        logger.error(f"Failed to send Q3 confirmation: {exc}")
+    await update.message.reply_text(f"✅ Selected: {choice}")
 
-    try:
-        await update.message.reply_text(
-            "<b>Question 4</b>\n\nHave you previously submitted a Wikipedia draft?",
-            parse_mode=constants.ParseMode.HTML,
-            reply_markup=build_question_keyboard(["Yes", "No"]),
-        )
-    except Exception as exc:
-        logger.error(f"Failed to send Question 4: {exc}")
-    
+    await update.message.reply_text(
+        "<b>Question 4</b>\n\nHave you previously submitted a Wikipedia draft?",
+        parse_mode=constants.ParseMode.HTML,
+        reply_markup=build_question_keyboard(["Yes", "No"]),
+    )
     return QUESTION_PREVIOUS
 
 
@@ -548,20 +518,12 @@ async def q4_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     choice = update.message.text.strip()
     context.user_data["assessment"]["wiki_status"] = choice
-    
-    try:
-        await update.message.reply_text(f"✅ Selected: {choice}")
-    except Exception as exc:
-        logger.error(f"Failed to send Q4 confirmation: {exc}")
+    await update.message.reply_text(f"✅ Selected: {choice}")
 
-    try:
-        await update.message.reply_text(
-            "<b>Question 5</b>\n\nWhat is your main goal?\n\n<i>Please write your main goal in a single message.</i>",
-            parse_mode=constants.ParseMode.HTML,
-        )
-    except Exception as exc:
-        logger.error(f"Failed to send Question 5: {exc}")
-    
+    await update.message.reply_text(
+        "<b>Question 5</b>\n\nWhat is your main goal?\n\n<i>Please write your main goal in a single message.</i>",
+        parse_mode=constants.ParseMode.HTML,
+    )
     return QUESTION_GOAL
 
 
@@ -572,21 +534,13 @@ async def q5_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     text = update.message.text.strip()
     context.user_data["assessment"]["goal"] = text
-    
-    try:
-        await update.message.reply_text(f"✅ Received goal: {text}")
-    except Exception as exc:
-        logger.error(f"Failed to send Q5 confirmation: {exc}")
+    await update.message.reply_text(f"✅ Received goal: {text}")
 
-    try:
-        await update.message.reply_text(
-            "<b>Question 6</b>\n\nWhich means did you prefer our Admin contact through?",
-            parse_mode=constants.ParseMode.HTML,
-            reply_markup=build_question_keyboard(["Telegram", "Email"]),
-        )
-    except Exception as exc:
-        logger.error(f"Failed to send Question 6: {exc}")
-    
+    await update.message.reply_text(
+        "<b>Question 6</b>\n\nWhich means did you prefer our Admin contact through?",
+        parse_mode=constants.ParseMode.HTML,
+        reply_markup=build_question_keyboard(["Telegram", "Email"]),
+    )
     return QUESTION_CONTACT
 
 
@@ -602,17 +556,11 @@ async def q6_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if choice.lower() == "telegram":
         if user and user.username:
             context.user_data["assessment"]["contact_value"] = f"@{user.username}"
-            try:
-                await update.message.reply_text(f"✅ Contact details saved: Telegram")
-            except Exception as exc:
-                logger.error(f"Failed to send Telegram confirmation: {exc}")
-            try:
-                await update.message.reply_text(
-                    "<b>Question 7</b>\n\nWhat is your full name?",
-                    parse_mode=constants.ParseMode.HTML,
-                )
-            except Exception as exc:
-                logger.error(f"Failed to send Question 7: {exc}")
+            await update.message.reply_text(f"✅ Selected: {choice} (will contact via @{user.username})")
+            await update.message.reply_text(
+                "<b>Question 7</b>\n\nWhat is your full name?",
+                parse_mode=constants.ParseMode.HTML,
+            )
             return QUESTION_FULLNAME
         await update.message.reply_text(
             "<b>Question 6a</b>\n\nPlease send your Telegram username so admin can contact you.",
@@ -640,21 +588,12 @@ async def q6_value_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     value = update.message.text.strip()
     context.user_data["assessment"]["contact_value"] = value
-    
-    try:
-        await update.message.reply_text(f"✅ Contact details saved: {value}")
-    except Exception as exc:
-        logger.error(f"Failed to send contact confirmation: {exc}")
+    await update.message.reply_text(f"✅ Contact details saved: {value}")
 
-    try:
-        await update.message.reply_text(
-            "<b>Question 7</b>\n\nWhat is your full name?",
-            parse_mode=constants.ParseMode.HTML,
-        )
-    except Exception as exc:
-        logger.error(f"Failed to send Question 7: {exc}")
-        await update.message.reply_text("<b>Question 7</b>\n\nWhat is your full name?")
-    
+    await update.message.reply_text(
+        "<b>Question 7</b>\n\nWhat is your full name?",
+        parse_mode=constants.ParseMode.HTML,
+    )
     return QUESTION_FULLNAME
 
 
@@ -665,20 +604,12 @@ async def q7_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     text = update.message.text.strip()
     context.user_data["assessment"]["full_name"] = text
-    
-    try:
-        await update.message.reply_text(f"✅ Received name: {text}")
-    except Exception as exc:
-        logger.error(f"Failed to send Q7 confirmation: {exc}")
+    await update.message.reply_text(f"✅ Received name: {text}")
 
-    try:
-        await update.message.reply_text(
-            "<b>Question 8</b>\n\nGive us useful Link, Name, or any means to make research on your subject.\n\n<i>You can send multiple links in one message.</i>",
-            parse_mode=constants.ParseMode.HTML,
-        )
-    except Exception as exc:
-        logger.error(f"Failed to send Question 8: {exc}")
-    
+    await update.message.reply_text(
+        "<b>Question 8</b>\n\nGive us useful Link, Name, or any means to make research on your subject.\n\n<i>You can send multiple links in one message.</i>",
+        parse_mode=constants.ParseMode.HTML,
+    )
     return QUESTION_LINKS
 
 
@@ -689,20 +620,12 @@ async def q8_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     text = update.message.text.strip()
     context.user_data["assessment"]["research_links"] = text
-    
-    try:
-        await update.message.reply_text(f"✅ Received research references.")
-    except Exception as exc:
-        logger.error(f"Failed to send Q8 confirmation: {exc}")
+    await update.message.reply_text(f"✅ Received research references.")
 
-    try:
-        await update.message.reply_text(
-            "<b>📝 Additional Message</b>\n\nPlease send any extra context or notes for our team.",
-            parse_mode=constants.ParseMode.HTML,
-        )
-    except Exception as exc:
-        logger.error(f"Failed to send Question 9: {exc}")
-    
+    await update.message.reply_text(
+        "<b>📝 Additional Message</b>\n\nPlease send any extra context or notes for our team.",
+        parse_mode=constants.ParseMode.HTML,
+    )
     return QUESTION_ADDITIONAL
 
 
@@ -713,11 +636,7 @@ async def q9_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     text = update.message.text.strip()
     context.user_data["assessment"]["additional_message"] = text
-    
-    try:
-        await update.message.reply_text(f"✅ Received additional message.")
-    except Exception as exc:
-        logger.error(f"Failed to send Q9 confirmation: {exc}")
+    await update.message.reply_text(f"✅ Received additional message.")
 
     await send_preview(update, context)
     return CONFIRM
@@ -1018,9 +937,6 @@ def _schedule_follow_up_job(context: ContextTypes.DEFAULT_TYPE, chat_id: int, st
     """Schedule a follow-up reminder job for the chat."""
     if not hasattr(context, "application") or not context.application:
         return
-    if not getattr(context.application, "job_queue", None):
-        logger.warning("Job queue is not configured; skipping follow-up reminder for stage %s", stage)
-        return
 
     job = context.application.job_queue.run_once(
         _send_follow_up_message,
@@ -1142,7 +1058,7 @@ def render_professional_report_text() -> str:
     return (
         "<b>🔍 Professional Wikipedia Readiness Report</b>\n\n"
         "If you would like a deeper review, <b>NotablePath</b> offers a Professional Wikipedia Readiness Report.\n\n"
-        "<b>Included:</b>\n"
+        "Included:\n"
         "✓ Source Evaluation\n"
         "✓ Notability Review\n"
         "✓ Risk Assessment\n"
@@ -1150,10 +1066,8 @@ def render_professional_report_text() -> str:
         "✓ Recommendations\n"
         "✓ Suggested Next Steps\n\n"
         "This report is prepared manually after reviewing your submitted information and available independent sources.\n\n"
-        "<b>Price:</b> Negotiable\n\n"
-        "Because every Wikipedia situation is different, pricing depends on complexity.\n\n"
-        "<b>Next Steps:</b>\n"
-        "Click the button below to request your professional report and discuss pricing with our team."
+        "<b>Price:</b> $Negotiable\n\n"
+        "<b>Because every Wikipedia situation is different, pricing depends on complexity.\n\n"
     )
 
 
@@ -1197,22 +1111,12 @@ async def confirm_submission(update: Update, context: ContextTypes.DEFAULT_TYPE)
             _schedule_follow_up_job(context, chat_id, "completed_3d", timedelta(days=3))
             _schedule_follow_up_job(context, chat_id, "completed_7d", timedelta(days=7))
 
-        try:
-            await query.message.reply_text(render_assessment_overview(assessment), parse_mode=constants.ParseMode.HTML)
-        except Exception as exc:
-            logger.error(f"Failed to send assessment overview: {exc}")
-            await query.message.reply_text("✅ Assessment completed. Your readiness overview is being prepared...")
+        await query.message.reply_text(render_assessment_overview(assessment), parse_mode=constants.ParseMode.HTML)
 
-        try:
-            report_text = render_professional_report_text()
-            await query.message.reply_text(report_text, parse_mode=constants.ParseMode.HTML,
-                reply_markup=build_professional_report_markup()
-            )
-        except Exception as exc:
-            logger.error(f"Failed to send professional report: {exc}")
-            await query.message.reply_text(
-                "For a Professional Wikipedia Readiness Report, please contact us at: https://t.me/Enochs_world"
-            )
+        report_text = render_professional_report_text()
+        await query.message.reply_text(report_text, parse_mode=constants.ParseMode.HTML,
+            reply_markup=build_professional_report_markup()
+        )
 
         context.user_data.pop("assessment", None)
         return ConversationHandler.END
@@ -1235,23 +1139,9 @@ async def cancel_assessment(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     return ConversationHandler.END
 
 
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle errors in the application."""
-    logger.error("Update %s caused error %s", update, context.error, exc_info=context.error)
-
-
 def main() -> None:
     """Main bot entry point."""
-    # Configure HTTP client with proper timeouts
-    request = HTTPXRequest(
-        connect_timeout=30.0,    # Connection timeout
-        read_timeout=30.0,        # Read timeout
-        write_timeout=30.0,       # Write timeout
-        pool_timeout=30.0,        # Pool timeout
-    )
-    
-    app = ApplicationBuilder().token(BOT_TOKEN).request(request).build()
-    app.add_error_handler(error_handler)
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     assessment_handler = ConversationHandler(
         entry_points=[
@@ -1279,6 +1169,7 @@ def main() -> None:
         fallbacks=[CommandHandler("cancel", cancel_assessment)],
         per_user=True,
         per_chat=True,
+        per_message=True,
     )
 
     app.add_handler(CommandHandler("start", start))
@@ -1291,28 +1182,8 @@ def main() -> None:
     app.add_handler(CallbackQueryHandler(q_continue, pattern="^START_ASSESSMENT$"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler))
 
-    # Ensure job queue is initialized
-    if not app.job_queue:
-        app.job_queue.start()
-
     logger.info("Starting NotablePath bot...")
-    
-    # Retry logic for connection failures
-    max_retries = 3
-    retry_count = 0
-    while retry_count < max_retries:
-        try:
-            app.run_polling()
-            break
-        except Exception as e:
-            retry_count += 1
-            if retry_count < max_retries:
-                wait_time = 2 ** retry_count  # Exponential backoff
-                logger.error(f"Connection attempt {retry_count} failed: {e}. Retrying in {wait_time}s...")
-                time.sleep(wait_time)
-            else:
-                logger.error(f"Failed to connect after {max_retries} attempts: {e}")
-                raise
+    app.run_polling()
 
 
 if __name__ == "__main__":
