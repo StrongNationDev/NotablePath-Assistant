@@ -456,7 +456,10 @@ async def q_continue(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def q1_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 1 response."""
-    if update.message and is_back_text(update.message.text):
+    if not update.message:
+        return ConversationHandler.END
+    
+    if is_back_text(update.message.text):
         return await reset_to_welcome(update, context)
 
     choice = update.message.text.strip()
@@ -480,7 +483,10 @@ async def q1_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def q2_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 2 response."""
-    if update.message and is_back_text(update.message.text):
+    if not update.message:
+        return ConversationHandler.END
+    
+    if is_back_text(update.message.text):
         return await reset_to_welcome(update, context)
 
     choice = update.message.text.strip()
@@ -502,7 +508,10 @@ async def q2_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def q3_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 3 response."""
-    if update.message and is_back_text(update.message.text):
+    if not update.message:
+        return ConversationHandler.END
+    
+    if is_back_text(update.message.text):
         return await reset_to_welcome(update, context)
 
     choice = update.message.text.strip()
@@ -519,7 +528,10 @@ async def q3_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def q4_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 4 response."""
-    if update.message and is_back_text(update.message.text):
+    if not update.message:
+        return ConversationHandler.END
+    
+    if is_back_text(update.message.text):
         return await reset_to_welcome(update, context)
 
     choice = update.message.text.strip()
@@ -535,7 +547,10 @@ async def q4_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def q5_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 5 response (free text)."""
-    if update.message and is_back_text(update.message.text):
+    if not update.message:
+        return ConversationHandler.END
+    
+    if is_back_text(update.message.text):
         return await reset_to_welcome(update, context)
 
     text = update.message.text.strip()
@@ -552,7 +567,10 @@ async def q5_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def q6_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 6 response (contact type)."""
-    if update.message and is_back_text(update.message.text):
+    if not update.message:
+        return ConversationHandler.END
+    
+    if is_back_text(update.message.text):
         return await reset_to_welcome(update, context)
 
     choice = update.message.text.strip()
@@ -589,7 +607,10 @@ async def q6_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def q6_value_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 6a response (contact value)."""
-    if update.message and is_back_text(update.message.text):
+    if not update.message:
+        return ConversationHandler.END
+    
+    if is_back_text(update.message.text):
         return await reset_to_welcome(update, context)
 
     value = update.message.text.strip()
@@ -603,9 +624,14 @@ async def q6_value_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return QUESTION_FULLNAME
 
 
+
+
 async def q7_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 7 response (full name)."""
-    if update.message and is_back_text(update.message.text):
+    if not update.message:
+        return ConversationHandler.END
+    
+    if is_back_text(update.message.text):
         return await reset_to_welcome(update, context)
 
     text = update.message.text.strip()
@@ -621,7 +647,10 @@ async def q7_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def q8_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 8 response (research links)."""
-    if update.message and is_back_text(update.message.text):
+    if not update.message:
+        return ConversationHandler.END
+    
+    if is_back_text(update.message.text):
         return await reset_to_welcome(update, context)
 
     text = update.message.text.strip()
@@ -637,7 +666,10 @@ async def q8_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def q9_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle Question 9 response (additional message)."""
-    if update.message and is_back_text(update.message.text):
+    if not update.message:
+        return ConversationHandler.END
+    
+    if is_back_text(update.message.text):
         return await reset_to_welcome(update, context)
 
     text = update.message.text.strip()
@@ -1210,22 +1242,16 @@ def main() -> None:
 
     logger.info("Starting NotablePath bot...")
     
-    # Retry logic for connection failures
-    max_retries = 3
-    retry_count = 0
-    while retry_count < max_retries:
-        try:
-            app.run_polling()
-            break
-        except Exception as e:
-            retry_count += 1
-            if retry_count < max_retries:
-                wait_time = 2 ** retry_count  # Exponential backoff
-                logger.error(f"Connection attempt {retry_count} failed: {e}. Retrying in {wait_time}s...")
-                time.sleep(wait_time)
-            else:
-                logger.error(f"Failed to connect after {max_retries} attempts: {e}")
-                raise
+    try:
+        app.run_polling()
+    except Exception as e:
+        logger.error(f"Failed to start bot: {e}")
+        logger.error("Troubleshooting tips:")
+        logger.error("1. Check your internet connection")
+        logger.error("2. Verify BOT_TOKEN in .env is valid and not expired")
+        logger.error("3. Check if a firewall is blocking Telegram API (api.telegram.org)")
+        logger.error("4. Try disabling any VPN/proxy temporarily")
+        raise
 
 
 if __name__ == "__main__":
