@@ -6,7 +6,6 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
-from supabase import create_client
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -27,18 +26,13 @@ from telegram.ext import (
 from telegram.request import HTTPXRequest
 
 load_dotenv()
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_GROUP_ID = int(os.getenv("ADMIN_GROUP_ID", "0"))
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8964480625:AAHBVNjsZAlHRTXWM57xuPUvMV3W6Xn_EoI")
+ADMIN_GROUP_ID = int(os.getenv("ADMIN_GROUP_ID", "-1003845665410"))
 
 IMAGES_DIR = Path(__file__).resolve().parent / "images"
 
 if not BOT_TOKEN:
-    raise RuntimeError("BOT_TOKEN is missing from .env")
-
-supabase = None
-if SUPABASE_URL and SUPABASE_KEY:
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    raise RuntimeError("BOT_TOKEN is missing")
 
 logging.basicConfig(level=logging.ERROR, format="%(asctime)s %(levelname)s:%(name)s:%(message)s")
 root_logger = logging.getLogger()
@@ -702,35 +696,9 @@ async def send_preview(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def save_assessment(assessment: dict, user, source: str | None) -> bool:
-    """Save assessment to Supabase."""
-    if not supabase:
-        logger.warning("Supabase client not configured. Skipping save.")
-        return False
-
-    record = {
-        "telegram_id": user.id,
-        "username": user.username,
-        "full_name": assessment.get("full_name"),
-        "request_type": assessment.get("request"),
-        "subject": assessment.get("subject"),
-        "goal": assessment.get("goal"),
-        "wiki_status": assessment.get("wiki_status"),
-        "contact_type": assessment.get("contact_type", "telegram"),
-        "contact_value": assessment.get("contact_value", user.username if user.username else str(user.id)),
-        "lead_status": "new",
-        "consultant_notes": assessment.get("additional_message"),
-        "source": source or "telegram",
-    }
-    try:
-        result = supabase.table("assessments").insert(record).execute()
-        if result.error:
-            logger.error("Supabase insert error: %s", result.error)
-            return False
-        logger.info("Saved assessment for user %s", user.id)
-        return True
-    except Exception as exc:
-        logger.exception("Failed to save assessment to Supabase: %s", exc)
-        return False
+    """Skip persistence because Supabase storage is disabled."""
+    logger.info("Supabase storage is disabled. Assessment not saved to database.")
+    return True
 
 
 def compute_lead_score(assessment: dict) -> tuple[int, str]:
