@@ -29,8 +29,6 @@ from telegram.request import HTTPXRequest
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 ADMIN_GROUP_ID = int(os.getenv("ADMIN_GROUP_ID", "0"))
 
 IMAGES_DIR = Path(__file__).resolve().parent / "images"
