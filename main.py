@@ -26,7 +26,7 @@ from telegram.ext import (
 from telegram.request import HTTPXRequest
 
 load_dotenv()
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8964480625:AAHBVNjsZAlHRTXWM57xuPUvMV3W6Xn_EoI")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8964480625:AAED21BPuEbHrPCVzfeC2dfsq16_beTb3Sg")
 ADMIN_GROUP_ID = int(os.getenv("ADMIN_GROUP_ID", "-1003845665410"))
 
 IMAGES_DIR = Path(__file__).resolve().parent / "images"
