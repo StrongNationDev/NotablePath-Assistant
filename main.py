@@ -26,7 +26,7 @@ from telegram.ext import (
 from telegram.request import HTTPXRequest
 
 load_dotenv()
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8964480625:AAHBVNjsZAlHRTXWM57xuPUvMV3W6Xn_EoI")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8964480625:AAED21BPuEbHrPCVzfeC2dfsq16_beTb3Sg")
 ADMIN_GROUP_ID = int(os.getenv("ADMIN_GROUP_ID", "-1003845665410"))
 
 IMAGES_DIR = Path(__file__).resolve().parent / "images"
@@ -67,7 +67,10 @@ def build_main_menu(has_help: bool = True) -> ReplyKeyboardMarkup:
 def build_service_menu() -> InlineKeyboardMarkup:
     """Service menu with inline buttons."""
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("💬 Book A Session", url="http://notablepath.online/order")],
+        [InlineKeyboardButton(
+            "📧 Email Us",
+            url="mailto:notablepathc@gmail.com?subject=Ready%20to%20Process%20Assessment%20For%20Wikipedia%20Page&body=Hey%20NotablePath%20Team",
+        )],
         [InlineKeyboardButton("🌐 Check Other Services", url="https://notablepath.online/other-services")],
         [InlineKeyboardButton("⬅️ Back", callback_data="SERVICE_BACK")],
     ])
