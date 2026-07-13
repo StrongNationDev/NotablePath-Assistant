@@ -26,7 +26,7 @@ from telegram.ext import (
 from telegram.request import HTTPXRequest
 
 load_dotenv()
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8964480625:AAED21BPuEbHrPCVzfeC2dfsq16_beTb3Sg")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8964480625:AAG-4rfOOvnZOMN2BGO265Qc5pi2dPUoLPc")
 ADMIN_GROUP_ID = int(os.getenv("ADMIN_GROUP_ID", "-1003845665410"))
 
 IMAGES_DIR = Path(__file__).resolve().parent / "images"
@@ -263,20 +263,17 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def services_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /services command."""
-    chat_id = None
+    target_message = None
     if update.message:
-        chat_id = update.message.chat_id
-        message = await update.message.reply_text("🎨 Preparing our service showcase...")
+        target_message = update.message
     elif update.callback_query and update.callback_query.message:
-        chat_id = update.callback_query.message.chat_id
-        message = await update.callback_query.message.reply_text("🎨 Preparing our service showcase...")
-    else:
-        chat_id = update.effective_chat.id if update.effective_chat else None
-        message = None
+        target_message = update.callback_query.message
 
-    if chat_id is None:
-        logger.warning("Unable to determine chat_id for services_command")
+    if not target_message:
+        logger.warning("Unable to determine target message for services_command")
         return
+
+    preparing_message = await target_message.reply_text("🎨 Preparing our service showcase...")
 
     service_messages = []
     for image_name in ("Service.png", "Services.png"):
@@ -284,7 +281,7 @@ async def services_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         if image_path.exists():
             try:
                 with open(image_path, "rb") as photo:
-                    sent_photo = await context.bot.send_photo(chat_id=chat_id, photo=photo)
+                    sent_photo = await context.bot.send_photo(chat_id=target_message.chat_id, photo=photo)
                     service_messages.append(sent_photo.message_id)
                     logger.info("Sent image %s", image_name)
             except Exception as exc:
@@ -299,21 +296,20 @@ async def services_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     )
 
     try:
-        service_message = await context.bot.send_message(
-            chat_id=chat_id,
-            text=service_text,
+        service_message = await target_message.reply_text(
+            service_text,
             parse_mode=constants.ParseMode.HTML,
             reply_markup=build_service_menu(),
         )
         service_messages.append(service_message.message_id)
     except Exception as exc:
-        logger.exception("Failed to send service description message: %s", exc)
-        if message:
-            await message.reply_text(
-                "Sorry, we could not load the service details right now. Please try again later.",
-            )
+        logger.exception("Failed to send service message using reply_text: %s", exc)
+        await preparing_message.reply_text(
+            "Sorry, we could not load the service details right now. Please try again later.",
+        )
         return
 
+    service_messages.append(preparing_message.message_id)
     context.user_data["service_messages"] = service_messages
 
 
