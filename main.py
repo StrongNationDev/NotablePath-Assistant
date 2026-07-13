@@ -263,10 +263,20 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def services_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /services command."""
+    chat_id = None
     if update.message:
+        chat_id = update.message.chat_id
         message = await update.message.reply_text("🎨 Preparing our service showcase...")
-    else:
+    elif update.callback_query and update.callback_query.message:
+        chat_id = update.callback_query.message.chat_id
         message = await update.callback_query.message.reply_text("🎨 Preparing our service showcase...")
+    else:
+        chat_id = update.effective_chat.id if update.effective_chat else None
+        message = None
+
+    if chat_id is None:
+        logger.warning("Unable to determine chat_id for services_command")
+        return
 
     service_messages = []
     for image_name in ("Service.png", "Services.png"):
@@ -274,7 +284,7 @@ async def services_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         if image_path.exists():
             try:
                 with open(image_path, "rb") as photo:
-                    sent_photo = await context.bot.send_photo(chat_id=message.chat_id, photo=photo)
+                    sent_photo = await context.bot.send_photo(chat_id=chat_id, photo=photo)
                     service_messages.append(sent_photo.message_id)
                     logger.info("Sent image %s", image_name)
             except Exception as exc:
@@ -287,13 +297,23 @@ async def services_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         "✓ Source evaluation and draft review\n"
         "✓ Notability and article strategy support"
     )
-    service_message = await context.bot.send_message(
-        chat_id=message.chat_id,
-        text=service_text,
-        parse_mode=constants.ParseMode.HTML,
-        reply_markup=build_service_menu(),
-    )
-    service_messages.append(service_message.message_id)
+
+    try:
+        service_message = await context.bot.send_message(
+            chat_id=chat_id,
+            text=service_text,
+            parse_mode=constants.ParseMode.HTML,
+            reply_markup=build_service_menu(),
+        )
+        service_messages.append(service_message.message_id)
+    except Exception as exc:
+        logger.exception("Failed to send service description message: %s", exc)
+        if message:
+            await message.reply_text(
+                "Sorry, we could not load the service details right now. Please try again later.",
+            )
+        return
+
     context.user_data["service_messages"] = service_messages
 
 
